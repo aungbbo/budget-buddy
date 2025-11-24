@@ -93,7 +93,10 @@
                         {% endif %}
                     </label>
                 </div>
-                <div class="category-chips">
+                <button class="chip-toggle" type="button" aria-expanded="false">
+                    Show categories
+                </button>
+                <div class="category-chips collapse" id="category-chips">
                     {% for category in categories %}
                         <span class="category-chip category-chip--{{ category.value }}">
                             {{ category.label }}
@@ -158,6 +161,19 @@
             };
             updateCategoryBackground();
             categorySelect.addEventListener("change", updateCategoryBackground);
+        }
+
+        const chipToggle = document.querySelector(".chip-toggle");
+        const chipContainer = document.getElementById("category-chips");
+        if (chipToggle && chipContainer) {
+            chipToggle.addEventListener("click", () => {
+                const expanded = chipContainer.classList.toggle("collapse");
+                chipContainer.classList.toggle("mobile-expanded");
+                chipToggle.setAttribute("aria-expanded", (!expanded).toString());
+                chipToggle.textContent = chipContainer.classList.contains("mobile-expanded")
+                    ? "Hide categories"
+                    : "Show categories";
+            });
         }
     </script>
 </body>
