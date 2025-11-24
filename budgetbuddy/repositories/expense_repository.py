@@ -30,3 +30,10 @@ class ExpenseRepository:
         key_fn = key_map.get(sort_by, key_map["date"])
         return sorted(self._items, key=key_fn, reverse=descending)
 
+    def delete(self, expense_id: int) -> bool:
+        for index, expense in enumerate(self._items):
+            if expense.id == expense_id:
+                del self._items[index]
+                return True
+        return False
+

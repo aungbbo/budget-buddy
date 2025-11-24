@@ -126,6 +126,7 @@
                         <th>Description</th>
                         <th>Category</th>
                         <th class="amount">Amount</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody id="expense-table-body">
@@ -140,11 +141,19 @@
                                     </span>
                                 </td>
                                 <td class="amount">${{ "%.2f"|format(expense.amount) }}</td>
+                                <td class="actions">
+                                    <form method="post" action="{{ url_for('dashboard.dashboard', sort=active_sort) }}">
+                                        <input type="hidden" name="delete_id" value="{{ expense.id }}">
+                                        <button type="submit" class="icon-button" aria-label="Delete expense">
+                                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="">
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="4" class="empty-state">No expenses yet.</td>
+                            <td colspan="5" class="empty-state">No expenses yet.</td>
                         </tr>
                     {% endif %}
                 </tbody>

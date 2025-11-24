@@ -188,6 +188,32 @@ main {
 .category-pill--shopping { background: #fef3c7; }
 .category-pill--additional { background: #fecaca; }
 
+.icon-button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.icon-button img {
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
+}
+
+.actions {
+    text-align: right;
+}
+
 .form-grid {
     display: grid;
     gap: 1rem;

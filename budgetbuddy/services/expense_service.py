@@ -21,9 +21,13 @@ class ExpenseService:
         return self.repository.add(expense)
 
     def list_expenses(self, sort_by: str = "date") -> List[dict]:
-        descending = sort_by == "amount"
+        descending = sort_by == "date"
         expenses = self.repository.list(sort_by, descending)
         return [self._to_dict(expense) for expense in expenses]
+    
+
+    def delete_expense(self, expense_id: int) -> bool:
+        return self.repository.delete(expense_id)
 
     @staticmethod
     def _to_dict(expense: Expense) -> dict:
