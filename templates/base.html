@@ -53,13 +53,26 @@
                     </label>
                     <label>
                         <span>Category</span>
-                        <input
-                            type="text"
-                            name="category"
-                            value="{{ form.value('category') }}"
-                            class="{% if form.errors.get('category') %}invalid{% endif %}"
-                            required
-                        >
+                        <div class="select-wrapper {% if form.errors.get('category') %}invalid{% endif %}">
+                            <select
+                                id="category-select"
+                                name="category"
+                                class="category-select"
+                                data-colors='{{ category_color_map | tojson | safe }}'
+                                required
+                            >
+                                <option value="" disabled {% if not form.value('category') %}selected{% endif %}></option>
+                                {% for category in categories %}
+                                    <option
+                                        value="{{ category.value }}"
+                                        data-color="{{ category.color }}"
+                                        {% if form.value('category') == category.value %}selected{% endif %}
+                                    >
+                                        {{ category.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         {% if form.errors.get('category') %}
                             <small class="field-error">{{ form.errors['category'] }}</small>
                         {% endif %}
@@ -79,6 +92,13 @@
                             <small class="field-error">{{ form.errors['amount'] }}</small>
                         {% endif %}
                     </label>
+                </div>
+                <div class="category-chips">
+                    {% for category in categories %}
+                        <span class="category-chip category-chip--{{ category.value }}">
+                            {{ category.label }}
+                        </span>
+                    {% endfor %}
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="primary-btn">Add Expense</button>
@@ -111,7 +131,11 @@
                             <tr>
                                 <td>{{ expense.date }}</td>
                                 <td>{{ expense.description }}</td>
-                                <td>{{ expense.category }}</td>
+                                <td>
+                                    <span class="category-pill category-pill--{{ expense.category }}">
+                                        {{ expense.category|title }}
+                                    </span>
+                                </td>
                                 <td class="amount">${{ "%.2f"|format(expense.amount) }}</td>
                             </tr>
                         {% endfor %}
@@ -124,5 +148,17 @@
             </table>
         </section>
     </main>
+    <script>
+        const categorySelect = document.getElementById("category-select");
+        if (categorySelect) {
+            const categoryColors = JSON.parse(categorySelect.dataset.colors || "{}");
+            const updateCategoryBackground = () => {
+                const color = categoryColors[categorySelect.value];
+                categorySelect.style.setProperty("--selected-category-color", color || "var(--card-bg)");
+            };
+            updateCategoryBackground();
+            categorySelect.addEventListener("change", updateCategoryBackground);
+        }
+    </script>
 </body>
 </html>

@@ -7,6 +7,17 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from ..forms import ExpenseForm
 from ..services import ExpenseService
 
+CATEGORY_CHOICES = [
+    {"value": "housing", "label": "Housing", "color": "#dbeafe"},
+    {"value": "utilities", "label": "Utilities", "color": "#ede9fe"},
+    {"value": "dining", "label": "Dining", "color": "#fee2e2"},
+    {"value": "grocery", "label": "Grocery", "color": "#dcfce7"},
+    {"value": "transportation", "label": "Transportation", "color": "#cffafe"},
+    {"value": "entertainment", "label": "Entertainment", "color": "#fce7f3"},
+    {"value": "shopping", "label": "Shopping", "color": "#fef3c7"},
+    {"value": "additional", "label": "Additional", "color": "#fecaca"},
+]
+
 
 def create_expense_blueprint(service: ExpenseService) -> Blueprint:
     bp = Blueprint("dashboard", __name__)
@@ -28,6 +39,8 @@ def create_expense_blueprint(service: ExpenseService) -> Blueprint:
             expenses=expenses,
             today=date.today().isoformat(),
             active_sort=sort_by,
+            categories=CATEGORY_CHOICES,
+            category_color_map={choice["value"]: choice["color"] for choice in CATEGORY_CHOICES},
         )
 
     return bp
