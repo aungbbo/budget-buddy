@@ -10,7 +10,7 @@
     <header class="page-header">
         <div class="container">
             <h1>BudgetBuddy</h1>
-            <p class="tagline">Track expenses with ease</p>
+            <p class="tagline">Simple tracking, smarter spending</p>
         </div>
     </header>
 
@@ -43,7 +43,6 @@
                         <input
                             type="text"
                             name="description"
-                            placeholder="Coffee with team"
                             value="{{ form.value('description') }}"
                             class="{% if form.errors.get('description') %}invalid{% endif %}"
                             required
@@ -57,7 +56,6 @@
                         <input
                             type="text"
                             name="category"
-                            placeholder="Food"
                             value="{{ form.value('category') }}"
                             class="{% if form.errors.get('category') %}invalid{% endif %}"
                             required
@@ -73,7 +71,6 @@
                             name="amount"
                             min="0"
                             step="0.01"
-                            placeholder="12.50"
                             value="{{ form.value('amount') }}"
                             class="{% if form.errors.get('amount') %}invalid{% endif %}"
                             required
@@ -83,7 +80,9 @@
                         {% endif %}
                     </label>
                 </div>
-                <button type="submit" class="primary-btn">Add Expense</button>
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn">Add Expense</button>
+                </div>
             </form>
         </section>
 

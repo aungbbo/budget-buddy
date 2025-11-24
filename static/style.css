@@ -90,6 +90,11 @@ main {
     color: var(--danger);
 }
 
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
 .form-grid {
     display: grid;
     gap: 1rem;

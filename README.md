@@ -42,7 +42,7 @@ To get **BudgetBuddy** up and running, follow these steps:
 
 4. **Run the application:**
    ```bash
-   uv run main.py
+   uv run app.py
    ```
 
 The app should now be running locally. Visit [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser to use BudgetBuddy.
