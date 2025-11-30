@@ -1,39 +1,64 @@
 from __future__ import annotations
 
-from typing import Callable, List
+from datetime import date
 
+from ..db import db_connection
 from ..models import Expense
 
 
 class ExpenseRepository:
     """
-    Simple in-memory repository. Swap this out for a persistent
-    implementation (SQLAlchemy, etc.) without touching the service layer.
+    SQLite-backed repository implementation. Persists expenses using
+    the helpers provided in budgetbuddy.db.
     """
 
-    def __init__(self) -> None:
-        self._items: List[Expense] = []
-        self._next_id = 1
+    _SORT_COLUMN_MAP: dict[str, str] = {
+        "date": "date",
+        "category": "category",
+        "amount": "amount",
+    }
 
     def add(self, expense: Expense) -> Expense:
-        expense.id = self._next_id
-        self._next_id += 1
-        self._items.append(expense)
+        with db_connection() as conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO expenses (date, description, amount, category)
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    expense.date.isoformat(),
+                    expense.description,
+                    expense.amount,
+                    expense.category,
+                ),
+            )
+            expense.id = cursor.lastrowid
         return expense
 
     def list(self, sort_by: str = "date", descending: bool = False) -> list[Expense]:
-        key_map: dict[str, Callable[[Expense], object]] = {
-            "date": lambda expense: expense.date,
-            "category": lambda expense: expense.category.lower(),
-            "amount": lambda expense: expense.amount,
-        }
-        key_fn = key_map.get(sort_by, key_map["date"])
-        return sorted(self._items, key=key_fn, reverse=descending)
+        column = self._SORT_COLUMN_MAP.get(sort_by, self._SORT_COLUMN_MAP["date"])
+        direction = "DESC" if descending else "ASC"
+        query = f"""
+            SELECT id, date, description, amount, category
+            FROM expenses
+            ORDER BY {column} {direction}, id ASC
+        """
+        with db_connection() as conn:
+            rows = conn.execute(query).fetchall()
+        return [self._row_to_expense(row) for row in rows]
 
     def delete(self, expense_id: int) -> bool:
-        for index, expense in enumerate(self._items):
-            if expense.id == expense_id:
-                del self._items[index]
-                return True
-        return False
+        with db_connection() as conn:
+            cursor = conn.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
+            return cursor.rowcount > 0
+
+    @staticmethod
+    def _row_to_expense(row) -> Expense:
+        return Expense(
+            id=row["id"],
+            date=date.fromisoformat(row["date"]),
+            description=row["description"],
+            category=row["category"],
+            amount=row["amount"],
+        )
 
