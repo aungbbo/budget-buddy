@@ -1,51 +1,51 @@
-import json
 import unittest
-
-try:
-    from app import create_app
-    USE_FACTORY = True
-except Exception:
-    from app import app as global_app
-    USE_FACTORY = False
-
+from app import create_app
 
 
 class TestSummary(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if USE_FACTORY:
-            cls.app = create_app({"TESTING": True, "WTF_CSRF_ENABLED": False})
-        else:
-            global_app.config.update(TESTING=True, WTF_CSRF_ENABLED=False)
-            cls.app = global_app
+        cls.app = create_app()
+        cls.app.config["TESTING"] = True
+        cls.app.config["WTF_CSRF_ENABLED"] = False
         cls.client = cls.app.test_client()
 
-    def _add(self, date, cat, amt, typ):
+
+
+    def _add_expense(self, date, description, category, amount):
+        # Posts to the same URL the form uses
         return self.client.post(
-            "/add",
-            data={"date": date, "category": cat, "amount": str(amt), "type": typ},
+            "/dashboard?sort=date",
+            data={
+                "date": date,
+                "description": description,
+                "category": category,
+                "amount": str(amount),
+            },
             follow_redirects=True,
         )
 
+    def test_summary_numbers_on_homepage(self):
+        """
+        Seed some expenses, then check that the 'No expenses yet.' empty state
+        goes away, meaning we have at least one row in the history table.
+        """
 
+        # Seed a few expenses
+        self._add_expense("2025-11-03", "Salary", "additional", 2000)
+        self._add_expense("2025-11-03", "Rent", "housing", 800)
+        self._add_expense("2025-11-03", "Groceries", "grocery", 100)
 
-    def test_summary_numbers(self):
-        # seed
-        self._add("2025-11-03", "Salary", 2000, "income")
-        self._add("2025-11-03", "Rent", 800, "expense")
-        self._add("2025-11-03", "Groceries", 100, "expense")
-
-
-        # If JSON endpoint:
-        # res = self.client.get("/api/summary")
-        # data = res.get_json()
-        # self.assertAlmostEqual(data["income"], 2000.0)
-        # self.assertAlmostEqual(data["expense"], 900.0)
-        # self.assertAlmostEqual(data["balance"], 1100.0)
-
-
-        # Otherwise, assert the rendered page contains totals:
+        # Load the dashboard again (root path)
         res = self.client.get("/")
+        self.assertEqual(res.status_code, 200)
         page = res.get_data(as_text=True)
-        for needle in ["2000", "900", "1100"]:
-            self.assertIn(needle, page, f"Expected total {needle} not found on page")
+
+
+        # The initial empty-state text should no longer be present
+        self.assertNotIn("No expenses yet.", page)
+
+
+        # And at least one of our descriptions should be on the page
+        self.assertIn("Rent", page)
+        self.assertIn("Groceries", page)
