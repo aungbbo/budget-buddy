@@ -48,17 +48,8 @@ To get **BudgetBuddy** up and running, follow these steps:
 The app should now be running locally. Visit [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser to use BudgetBuddy.
 
 5. **Run tests with uv**
-   run unittest discovery:
+   run unittest in the same budget-buddy directory:
    ```bash
-   uv run python -m unittest discover -s tests -p "test_*_unittest.py
+   uv run python -m unittest discover -s tests -p "test_*.py" -v
    ```
 
-   or simply:
-    ```bash
-    uv run python -m unittest
-   ```
-
-    If you prefer pytest, you can run:
-   ```bash
-       uv run pytest -q
-   ```
