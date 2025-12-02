@@ -10,4 +10,7 @@ wheels/
 .venv
 
 # SQLite databases
-*.sqlite3.DS_Store
+*.sqlite3
+
+# macOS files
+.DS_Store
