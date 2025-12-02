@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 from ..db import db_connection
 from ..models import Expense
@@ -51,6 +51,34 @@ class ExpenseRepository:
         with db_connection() as conn:
             cursor = conn.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
             return cursor.rowcount > 0
+
+    def totals_by_category(self) -> list[dict[str, float]]:
+        with db_connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT category, SUM(amount) AS total
+                FROM expenses
+                GROUP BY category
+                ORDER BY total DESC
+                """
+            ).fetchall()
+        return [{"category": row["category"], "total": row["total"]} for row in rows]
+
+    def totals_by_day(self, days: int = 7) -> list[dict[str, float]]:
+        days = max(days, 1)
+        start_date = (date.today() - timedelta(days=days - 1)).isoformat()
+        with db_connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT date, SUM(amount) AS total
+                FROM expenses
+                WHERE date >= ?
+                GROUP BY date
+                ORDER BY date ASC
+                """,
+                (start_date,),
+            ).fetchall()
+        return [{"date": row["date"], "total": row["total"]} for row in rows]
 
     @staticmethod
     def _row_to_expense(row) -> Expense:

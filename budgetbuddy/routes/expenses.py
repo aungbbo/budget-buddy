@@ -38,6 +38,8 @@ def create_expense_blueprint(service: ExpenseService) -> Blueprint:
 
         sort_by = request.args.get("sort", "date")
         expenses = service.list_expenses(sort_by)
+        category_breakdown = service.category_breakdown()
+        daily_trend = service.daily_trend()
         return render_template(
             "base.html",
             form=form,
@@ -46,6 +48,8 @@ def create_expense_blueprint(service: ExpenseService) -> Blueprint:
             active_sort=sort_by,
             categories=CATEGORY_CHOICES,
             category_color_map={choice["value"]: choice["color"] for choice in CATEGORY_CHOICES},
+            category_breakdown=category_breakdown,
+            daily_trend=daily_trend,
         )
 
     return bp

@@ -109,6 +109,39 @@
             </form>
         </section>
 
+        <section class="card insights-card">
+            <div class="insights-header">
+                <div>
+                    <h2>Spending Overview</h2>
+                </div>
+                <div class="insights-meta">
+                    <span class="meta-label">Last 7 days</span>
+                </div>
+            </div>
+            <div class="chart-grid">
+                <div class="chart-panel">
+                    <div class="chart-panel__header">
+                        <h3>Category breakdown</h3>
+                        <p>Track which categories drive most of your spend.</p>
+                    </div>
+                    <canvas id="category-chart" aria-label="Category breakdown chart"></canvas>
+                    <p class="chart-empty-message" data-chart-empty="category">
+                        Add expenses to unlock this visualization.
+                    </p>
+                </div>
+                <div class="chart-panel">
+                    <div class="chart-panel__header">
+                        <h3>7-day trend</h3>
+                        <p>Stay on top of recent spending momentum.</p>
+                    </div>
+                    <canvas id="trend-chart" aria-label="Daily spending trend"></canvas>
+                    <p class="chart-empty-message" data-chart-empty="trend">
+                        Add expenses to unlock this visualization.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <section class="card table-card">
             <header class="table-header">
                 <h2>Expense History</h2>
@@ -160,10 +193,12 @@
             </table>
         </section>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const categorySelect = document.getElementById("category-select");
+        let categoryColors = {};
         if (categorySelect) {
-            const categoryColors = JSON.parse(categorySelect.dataset.colors || "{}");
+            categoryColors = JSON.parse(categorySelect.dataset.colors || "{}");
             const updateCategoryBackground = () => {
                 const color = categoryColors[categorySelect.value];
                 categorySelect.style.setProperty("--selected-category-color", color || "var(--card-bg)");
@@ -183,6 +218,89 @@
                     ? "Hide categories"
                     : "Show categories";
             });
+        }
+
+        const categoryBreakdown = {{ category_breakdown | tojson | safe }};
+        const dailyTrend = {{ daily_trend | tojson | safe }};
+        const categoryEmpty = document.querySelector('[data-chart-empty="category"]');
+        const trendEmpty = document.querySelector('[data-chart-empty="trend"]');
+
+        const toggleEmptyState = (element, shouldShow) => {
+            if (!element) return;
+            element.classList.toggle("visible", shouldShow);
+        };
+
+        if (window.Chart) {
+            const categoryChartEl = document.getElementById("category-chart");
+            const hasCategoryData = categoryBreakdown.length > 0;
+            toggleEmptyState(categoryEmpty, !hasCategoryData);
+            if (categoryChartEl && hasCategoryData) {
+                new Chart(categoryChartEl, {
+                    type: "doughnut",
+                    data: {
+                        labels: categoryBreakdown.map((item) => item.category),
+                        datasets: [
+                            {
+                                data: categoryBreakdown.map((item) => item.total),
+                                backgroundColor: categoryBreakdown.map(
+                                    (item) => categoryColors[item.category] || "#93c5fd"
+                                ),
+                                borderWidth: 2,
+                                borderColor: "#fff",
+                                hoverOffset: 12,
+                            },
+                        ],
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                position: "bottom",
+                                labels: { usePointStyle: true, pointStyle: "circle" },
+                            },
+                        },
+                    },
+                });
+            }
+
+            const hasTrendData = dailyTrend.some((day) => day.total > 0);
+            toggleEmptyState(trendEmpty, !hasTrendData);
+            const trendChartEl = document.getElementById("trend-chart");
+            if (trendChartEl) {
+                new Chart(trendChartEl, {
+                    type: "line",
+                    data: {
+                        labels: dailyTrend.map((day) =>
+                            new Date(day.date).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                            })
+                        ),
+                        datasets: [
+                            {
+                                label: "Amount ($)",
+                                data: dailyTrend.map((day) => day.total),
+                                borderColor: "#2563eb",
+                                backgroundColor: "rgba(37, 99, 235, 0.2)",
+                                fill: true,
+                                tension: 0.4,
+                            },
+                        ],
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: (value) => `$${value}`,
+                                },
+                            },
+                        },
+                        plugins: {
+                            legend: { display: false },
+                        },
+                    },
+                });
+            }
         }
     </script>
 </body>
